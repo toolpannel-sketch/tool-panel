@@ -1,0 +1,5 @@
+MAIN_SOURCE_LINES=2160
+MAIN_SOURCE_SHA256=13e0e766d8ef135b289e984208e6287448a1219be2c580ae3a2ee9aec5f0a903
+OUTPUT=/home/ubuntu/lua-license-panel/LuaLicense-Universal-Complete-ChunkFix.lua
+INTEGRATION_ONLY_FIX=true
+PROTECTED_FLOW_REWRITTEN=false

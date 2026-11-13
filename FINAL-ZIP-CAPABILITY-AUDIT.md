@@ -1,0 +1,76 @@
+# Final Authorized ZIP Capability Audit
+
+**Author:** Manus AI  
+**Scope:** Static inspection only of `/home/ubuntu/authorized-lua-audit/ALL LUA DEC 4.5 BGMI/`  
+**Execution performed:** None. No Lua source was run, and no license, device-binding, authentication, or production-loader behavior was changed.
+
+## Scope and method
+
+The archive contains **21,112 Lua files**. Every Lua file was included in archive-wide filename/content scans for the requested network-related families: HTTP/HTTPS/Http, Request, Download, URL, Web/WebRequest/UnityWebRequest, Socket, Network, Async, Callback, curl, Remote, and TLS/SSL/certificate. Keyword matches are not automatically transport APIs; many are game protocol labels, UI wording, URLs for images/pages, download-state names, or configuration data. Each concrete client, server, socket, URL-opening, or wrapper contract found by those scans was then classified from its source.
+
+The runtime is most accurately described from source evidence as a **UE4 game-client Lua environment using the slua binding layer**, rather than stock standalone Lua. The global `slua_GameFrontendHUD` is used as a host object, and the archive uses `import("KismetSystemLibrary")`, `import("ScriptHelperClient")`, `Client.*`, and other UE/application bindings.[1] [2] This is a source classification only; it is not a claim about every native capability compiled into the target Android runtime.
+
+## Network-relevant host/application surface found in the ZIP
+
+| Host/API surface | Source contract | Purpose indicated by source | Remote JSON suitability |
+|---|---|---|---|
+| `slua_GameFrontendHUD:GetHttpWrapper()` | Returns `HttpWrapper`; the documented manager subscribes to `OnResponseEvent` and sends requests through `RequestForLua`.[3] | General HTTP wrapper used by JSON, CDN, and list-download callers. | **Already tested; no alternative.** |
+| `HttpWrapper:ImageDownloadRequestForLua(...)` | Exposed through `http_manager:ImageDownloadRequest`; response event is `OnImageDownloadResponseEvent`.[3] | Image-specific GET/download path. | Same host wrapper; no source evidence that it is a JSON API. |
+| `Client.OpenURLInSDK(...)` and `WebviewSDK:*` | Opens/manages an in-game or system web view; methods do not return page body or an HTTP callback to Lua.[4] | Present web content to the player. | **No.** |
+| `Client.ConnectToURL(...)` / `Client.ConnectToURLWithDNSProxy(...)` | Called by `NetUtil` with a lobby/game URL, `NetInterface`, and game timeout.[5] | Game-session connection, not an HTTP request/response API. | **No documented JSON body contract.** |
+| `import("WINWebSocketServer")` | `GetInstance():Start(8888)` with connect/error/message events.[6] | Local/inbound WebSocket server for login-session flow. | **No; server, not outbound HTTP client.** |
+| `CreativeManagerBase:ConnectServer` / `SendMessage` (inherited) | A creative-mode manager calls `ConnectServer(wsUrl, "ws")` and `SendMessage(message)`; base implementation is not in this ZIP.[7] | Command-line/local creative MCP WebSocket channel. | **Not documented sufficiently in this ZIP; no general HTTP/JSON contract.** |
+| `require("socket")` | `socket.lua` delegates to `require("socket.core")`; it defines TCP connect/bind helpers but no HTTP/HTTPS client.[8] | Optional native LuaSocket dependency used by creative/editor/debug modules. | **Not established for the target runtime.** |
+| `ScriptHelperClient.SaveArrayToFile(...)` | Receives bytes already returned by the HTTP wrapper and saves them locally.[9] | File persistence after a completed wrapper request. | **No; it does not fetch a URL.** |
+
+The archive exposes many further UE/game APIs for UI, match/session handling, assets, files, and events. The table is the complete set of **network-relevant host/application surfaces identified by the archive-wide static scan**. None supplies another fully documented, target-verified remote JSON request interface.
+
+## Concrete request and transport patterns
+
+| Candidate and source | Exact function/API and arguments | Method, URL/headers, queue/callback | Successful-response evidence in the source | Assessment |
+|---|---|---|---|---|
+| Canonical wrapper — `http_manager.lua` | `Post(url, head, content, ueObj, callback, timeout, priority, queueType)` and `Get(url, head, content, ueObj, callback, timeout, priority, queueType)`.[3] | Calls `HttpWrapper:RequestForLua(url, "POST"/`"GET"`, head, content, priority, queueType)`. Defaults: `priority=0`, `queueType=0`. Native event is forwarded as `callback(success, data, content, result)`. Manager timeout locally invokes `callback(false, "", nil)` without a native result. | No captured successful HTTP/HTTPS callback body or error-code mapping is present. | **The already-tested path.** |
+| Image wrapper — `http_manager.lua` | `ImageDownloadRequest(url, head, content, ueObj, callback, timeout, priority)`.[3] | Calls `HttpWrapper:ImageDownloadRequestForLua(url, "GET", head, content, priority)`; image event is normalized through `OnRawResponseImg` to the same four-argument callback. No queue argument is exposed. | No successful target-runtime response example; source describes it as image download. | Same `HttpWrapper` host bridge, not a documented JSON alternative. |
+| Server-list downloader — `serverlist_downloader.lua` | `http_manager:Get(url, {}, "", nil, callback, nil, 3, 0)` twice.[9] | GET to domain-configured `.txt` URLs; empty headers/content; priority `3`, queue `0`; callback is `(success, data, content)`. It saves `content` with `ScriptHelperClient.SaveArrayToFile` only when `success` is true. | Code contains a success branch, but no recorded successful HTTPS exchange. | Downloader is another `http_manager` caller. |
+| CDN downloader — `cdn_downloader.lua` | `http_manager:Get(retInfo.cdnUrl, {}, "", nil, callback, nil, 30, 0, retInfo.savePath)`.[10] | GET; empty headers/content; priority `30`, queue `0`; callback `(success, data, content)` writes returned bytes to a file. The trailing save-path value is outside the documented manager signature and is not passed to `RequestForLua`. | No captured working target response. | Another `http_manager` caller. |
+| Ludo JSON helper — `LudoUtils.lua` | Multiple `http_manager:Get(...)` and `http_manager:Post(...)` calls, including `RequestUpdateRoomList`.[11] | Ticketed/query-string URLs and `LudoUtils.getHeaders()`. Omitted priority/queue fall back to `0/0`. GET callbacks use either `(success, data)` or `(success, data, content, result)`; POST uses `(success, data)`. `data` is JSON-decoded. | It contains success-handling logic, not an observed successful runtime response. | Confirms JSON consumers also use the same wrapper. |
+| Network test — `Client_Test_Net.lua` | `http_manager:Post("http://localhost:8000/", headers, "", nil, callback)`.[12] | POST; table passed as header parameter; callback `(success, data, content)`. | No checked-in response value or passing test transcript. | Still `http_manager`; local test URL is not a separate route. |
+| Raw TCP compatibility module — `socket.lua` | `require("socket.core")`, then `socket.connect(address, port, ...)`, `socket.tcp()`, `:connect`, `:send`, `:receive`, and `:bind` helpers.[8] | Raw TCP only; return values/errors are synchronous. It defines no HTTP/HTTPS request function, callback format, certificate handling, or JSON contract. | The native prerequisite `socket.core` is not implemented in the ZIP, and no target-runtime success result is shown. | Cannot be treated as an exposed, working Android client transport from this ZIP. |
+| Vibe task client — `VibeClient.lua` | Private `http_request(opts)` used by public `submit`, `answer`, `cancel`, polling, and download methods.[13] | Builds raw HTTP/1.1 over `socket.tcp()`. URL parser accepts `http`, `https`, `ws`, and `wss` labels, but it always opens ordinary TCP and never performs TLS; body sets `Content-Type: application/json`; result is synchronous `{code, body, headers={}, status}` or `nil, error`. Public methods are fixed to a task service (`/tasks` etc.), not arbitrary request dispatch. | No demonstrated response from a remote target. Requires `socket.core`; also optionally requires `mime` for WebSocket handshakes. | Application-specific creative subsystem code; it is not a documented HTTPS transport and is not evidence that this target runtime supports raw sockets. |
+| Creative MCP local server and upload helper — `CreativeMCPUtility.lua` | `Initialize(Addr, Port)` starts a listener; `SendHttp(Ip, Port, TargetFilename, LocalFilePath)` opens a TCP socket and uploads a local image/file.[14] | Server binds/listens locally. Upload helper POSTs binary data to `/capture?filename=...` with `Host`, `Content-Type`, `Content-Length`, and `Connection: close`; it logs a received `200 OK` string and returns no callback/body API. No TLS. | It has conditional log messages only; no successful target-runtime transcript. | Local MCP server plus specialized file upload, not a generic JSON/HTTPS client. |
+| MCP example — `MCPServerExample.lua` | `StartServer(Addr, Port)`, `RunServerWithLoop`, `StopServer`.[15] | Documents local endpoints at `127.0.0.1:10086`; the shown `curl` commands are instructions for **external HTTP clients to call the Lua server**. | Startup only; no outbound request call from Lua. | Inbound/local server, not an alternative outbound transport. |
+| Creative WebSocket manager — `CreativeWebSocketManager.lua` | `ConnectServer(self.WebSocketHost, "ws")`, `TrySendMessage(FuncName, ...)`, `OnMessageReceived`, `OnReceiveConnected`.[7] | URL is `ws://` plus a command-line/config host; message format is comma-delimited. Connection/send methods come from a base module not supplied in the ZIP. | No source record of a connected session or response. | No generic HTTPS/JSON route; contract is incomplete. |
+| Windows WebSocket server — `logic_ws_server.lua` | `import("WINWebSocketServer")`, `GetInstance()`, `:Start(8888)`, event delegates.[6] | Starts an inbound listener and accepts events `(ret)`; no outbound URL/method/body signature appears. | No remote request response shown. | Not an outbound client. |
+| Webview route — `logic_webview_sdk.lua` | `OpenURL(url, isGetTicket, withNeverAdjust, bKeepCache)` and `OpenURLInSDK(url, toolbar, systemBrowser, fullScreen, extraTable)`.[4] | Invokes `Client.OpenURLInSDK`; it is a visual page-opening flow. Methods return no response text, response status, headers, or request callback. | No Lua body callback exists in source. | Not a transport API. |
+| Game lobby route — `client_entry.lua` | `NetUtil.ConnectToURL(ip)`, `ConnectToURLDirectly(ip)`, `ConnectToURLWithDNSProxy(ip)`.[5] | Calls the game client with `NetInterface`, a lobby URL, DNS-proxy configuration, and a game SDK timeout. No HTTP method/headers/body/response contract is exposed. | No generic URL response body is returned. | Game-session connection only. |
+| Debug/editor socket code — `mobdebug.lua`, `LuaPanda.lua`, `CreativeActorEditorHttpServer.lua`, `CreativeAutoTestSubsystem.lua` | Uses raw sockets for debugger/editor/local-server protocols. | Synchronous protocol-specific TCP or local listeners; no documented general HTTPS/JSON client contract for the target runtime. | No relevant successful remote JSON exchange. | Not a safe or applicable license transport route. |
+
+## What the static evidence does and does not establish
+
+The source does establish that the product has a rich game/UE host layer and that multiple application modules intend to access remote resources. It also establishes that normal JSON calls, text-list downloads, and CDN byte downloads converge on the one documented `HttpWrapper` bridge. The wrapper is the only archive-provided path with an explicit generic URL, method, headers, content, priority/queue, and response callback contract.[3] [9] [10] [11]
+
+The source does **not** establish that raw LuaSocket is loaded by the target Android dynamic-execution runtime. The `socket.lua` shim immediately requires the native `socket.core` module, which is absent from the authorized ZIP, and the archive contains no static proof that it is exposed on the target device.[8] It also does not establish HTTPS support for the raw TCP helpers: both the Vibe client and MCP upload code use ordinary `socket.tcp()` with no TLS wrapping or certificate validation.[13] [14]
+
+The webview and game-session methods are intentionally treated as non-solutions. They may cause native networking on behalf of the game, but the supplied source does not document a callback that returns arbitrary remote JSON to Lua. Reusing them as a hidden data channel would require inference or undocumented behavior and is outside this audit’s boundary.
+
+> **Conclusion:** The authorized ZIP does not expose another documented networking route; host/runtime documentation or a supported bridge is required.
+
+This conclusion applies to the requested purpose: a **documented, target-usable, secure remote JSON request/response route beyond the already-tested `HttpWrapper` path**. The ancillary creator/editor/debug raw-socket code does not qualify because it lacks target-runtime availability evidence, generic HTTPS support, and a documented safe JSON request contract. Therefore, no new `{"test":"ping"}` probe is provided. Giving one for those modules would imply that `socket.core`, raw TCP, or an inherited WebSocket base is usable in the target Android environment, which this ZIP does not demonstrate.
+
+## References
+
+[1]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/game_frontend_hud.lua "game_frontend_hud.lua"
+[2]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/AdvertisementSubsystem.lua "AdvertisementSubsystem.lua"
+[3]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/http_manager.lua "http_manager.lua"
+[4]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/logic_webview_sdk.lua "logic_webview_sdk.lua"
+[5]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/client_entry.lua "client_entry.lua"
+[6]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/logic_ws_server.lua "logic_ws_server.lua"
+[7]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/CreativeWebSocketManager.lua "CreativeWebSocketManager.lua"
+[8]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/socket.lua "socket.lua"
+[9]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/serverlist_downloader.lua "serverlist_downloader.lua"
+[10]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/cdn_downloader.lua "cdn_downloader.lua"
+[11]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/LudoUtils.lua "LudoUtils.lua"
+[12]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/Client_Test_Net.lua "Client_Test_Net.lua"
+[13]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/VibeClient.lua "VibeClient.lua"
+[14]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/CreativeMCPUtility.lua "CreativeMCPUtility.lua"
+[15]: file:///home/ubuntu/authorized-lua-audit/ALL%20LUA%20DEC%204.5%20BGMI/MCPServerExample.lua "MCPServerExample.lua"

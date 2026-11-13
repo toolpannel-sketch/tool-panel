@@ -1,0 +1,2 @@
+bcc37a7ac09f603f456dd2ac0fb8ec837a2ac018b32bb0e7a24fe1a4773b3948  /home/ubuntu/pinned-lua-references/BRPlayerCharacterBase-Merged.lua
+83c4022769315f8f56b20a47b28b9a397a20c0640cd6bc40514cb7d93c1b4480  /home/ubuntu/pinned-lua-references/FailClose-NoRestriction.lua

@@ -1,0 +1,1 @@
+ALTER TABLE `licenses` ADD `max_devices` int DEFAULT 1 NOT NULL;

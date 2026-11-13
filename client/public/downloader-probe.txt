@@ -1,0 +1,2 @@
+LUA_DOWNLOADER_PROBE_V1
+This fixed public response contains no license or device data.

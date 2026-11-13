@@ -1,0 +1,2 @@
+ALTER TABLE `device_bindings` DROP INDEX `device_bindings_deviceHash_unique`;--> statement-breakpoint
+ALTER TABLE `device_bindings` ADD CONSTRAINT `device_bindings_license_device_hash_unique` UNIQUE(`licenseKeyId`,`deviceHash`);
