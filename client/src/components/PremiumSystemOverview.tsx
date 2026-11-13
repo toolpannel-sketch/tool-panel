@@ -1,4 +1,4 @@
-import { CosmicSystemOverview } from "@/components/CosmicSystemOverview";
+import { ModernAnalyticsOverview } from "@/components/ModernAnalyticsOverview";
 
 type SystemStats = {
   totalKeys?: number;
@@ -7,6 +7,14 @@ type SystemStats = {
   revokedKeys?: number;
 } | undefined;
 
-export function PremiumSystemOverview({ stats, isOwner }: { stats: SystemStats; isOwner: boolean }) {
-  return <CosmicSystemOverview stats={stats} isOwner={isOwner} />;
+export function PremiumSystemOverview({
+  stats,
+  keys = [],
+  isOwner,
+}: {
+  stats: SystemStats;
+  keys?: any[];
+  isOwner: boolean;
+}) {
+  return <ModernAnalyticsOverview stats={stats} keys={keys} isOwner={isOwner} />;
 }

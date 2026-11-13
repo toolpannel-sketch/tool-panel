@@ -58,8 +58,8 @@
 html, body {
   margin: 0;
   min-width: 320px;
-  background-color: #080b12;
-  color: #f8fafc;
+  background-color: #070a10;
+  color: #f1f5f9;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -76,102 +76,94 @@ button, input, select, textarea {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.font-display, h1, h2, h3 {
-  font-family: 'Outfit', sans-serif;
-}
-
-/* Obsidian Ambient Aurora & Micro-Grid Background */
+/* Linear/Vercel Clean Dark Gradient Background */
 .cosmic-backdrop {
-  background-color: #080b12;
+  background-color: #070a10;
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 90%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 30% at 10% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 30% at 100% 100%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
   background-attachment: fixed;
 }
 
-/* High-Tech Frosted Glass Cards */
-.cosmic-card,
-.hud-panel {
+/* Modern Frosted Cards */
+.hud-panel,
+.cosmic-card {
   position: relative;
-  background: rgba(13, 18, 30, 0.78) !important;
-  backdrop-filter: blur(28px) !important;
-  -webkit-backdrop-filter: blur(28px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
-  box-shadow: 
-    0 16px 36px -12px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-  border-radius: 20px !important;
+  background: rgba(13, 18, 30, 0.85) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 18px !important;
   overflow: hidden;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.cosmic-card:hover,
-.hud-panel:hover {
-  border-color: rgba(16, 185, 129, 0.32) !important;
-  box-shadow: 
-    0 20px 48px -10px rgba(16, 185, 129, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+.hud-panel:hover,
+.cosmic-card:hover {
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
-/* Floating Sleek Sidebar Dock */
+/* Sidebar Dock */
 .cosmic-dock {
-  background: rgba(10, 14, 24, 0.88);
-  backdrop-filter: blur(36px);
-  -webkit-backdrop-filter: blur(36px);
+  background: rgba(10, 14, 24, 0.92);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
-    0 24px 64px rgba(0, 0, 0, 0.75),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  border-radius: 20px;
 }
 
-/* Modern Inputs */
-.cosmic-input,
-.cyber-input {
-  background: rgba(6, 10, 18, 0.75) !important;
+/* Modern Clean Inputs */
+.cyber-input,
+.cosmic-input {
+  background: rgba(6, 9, 16, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 12px !important;
   color: #f8fafc !important;
   padding: 10px 14px;
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-size: 13px !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: all 0.2s ease !important;
 }
 
-.cosmic-input:focus,
-.cyber-input:focus {
-  border-color: rgba(16, 185, 129, 0.65) !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16), 0 0 20px rgba(16, 185, 129, 0.2) !important;
+.cyber-input:focus,
+.cosmic-input:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
   outline: none !important;
 }
 
 select.cyber-input {
-  background-color: #0b111c !important;
+  background-color: #090e18 !important;
 }
 
-/* Modern Primary Buttons (Emerald to Cyan Gradient) */
-.cosmic-btn-primary,
-.cyber-button {
+/* Modern Primary Buttons */
+.cyber-button,
+.cosmic-btn-primary {
   background: linear-gradient(135deg, #059669 0%, #10b981 50%, #06b6d4 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   border-radius: 12px !important;
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 600 !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35) !important;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  letter-spacing: 0.03em !important;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.3) !important;
+  transition: all 0.2s ease !important;
 }
 
-.cosmic-btn-primary:hover,
-.cyber-button:hover {
-  filter: brightness(1.1) !important;
-  box-shadow: 0 6px 28px rgba(16, 185, 129, 0.55) !important;
+.cyber-button:hover,
+.cosmic-btn-primary:hover {
+  filter: brightness(1.08) !important;
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.45) !important;
   transform: translateY(-1px) !important;
+}
+
+.cyber-button:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .cyber-outline {
@@ -179,9 +171,7 @@ select.cyber-input {
   border-radius: 12px !important;
   background: rgba(255, 255, 255, 0.04) !important;
   color: #e2e8f0 !important;
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 500 !important;
-  backdrop-filter: blur(12px) !important;
   transition: all 0.2s ease !important;
 }
 
@@ -189,7 +179,6 @@ select.cyber-input {
   border-color: rgba(16, 185, 129, 0.5) !important;
   background: rgba(16, 185, 129, 0.08) !important;
   color: #ffffff !important;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2) !important;
 }
 
 .cyber-danger {
@@ -203,72 +192,55 @@ select.cyber-input {
 .cyber-danger:hover {
   background: rgba(239, 68, 68, 0.22) !important;
   color: #ffffff !important;
-  box-shadow: 0 0 16px rgba(239, 68, 68, 0.25) !important;
 }
 
-/* Typography & Headings */
+/* Clean Professional Typography */
 .eyebrow {
   color: #10b981 !important;
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 600 !important;
   font-size: 11px !important;
-  letter-spacing: 0.14em !important;
+  letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
-}
-
-.eyebrow::before {
-  content: "⚡ " !important;
-  color: #06b6d4 !important;
 }
 
 .neon-heading {
   font-family: 'Outfit', sans-serif !important;
   font-weight: 700 !important;
-  letter-spacing: 0.01em !important;
   color: #ffffff !important;
-  text-shadow: 0 2px 18px rgba(255, 255, 255, 0.12) !important;
 }
 
 .section-title {
   font-family: 'Outfit', sans-serif !important;
   font-weight: 600 !important;
   color: #ffffff !important;
-  letter-spacing: 0.01em !important;
 }
 
-.field-label, .stat-label {
+.field-label {
   color: #94a3b8 !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
 }
 
-.icon-tile, .brand-mark {
-  border-radius: 12px !important;
-  background: rgba(16, 185, 129, 0.12) !important;
-  border: 1px solid rgba(16, 185, 129, 0.25) !important;
-  color: #34d399 !important;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15) !important;
-}
-
-/* Key Chips & Tables */
+/* Key Chips & Modern Tables */
 .key-chip {
   border-radius: 10px !important;
-  background: rgba(6, 182, 212, 0.06) !important;
-  border: 1px solid rgba(6, 182, 212, 0.25) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   color: #38bdf8 !important;
   font-family: 'IBM Plex Mono', monospace !important;
   font-weight: 600 !important;
-  padding: 5px 10px !important;
+  padding: 6px 12px !important;
   transition: all 0.2s ease !important;
+  display: inline-flex;
+  align-items: center;
 }
 
 .key-chip:hover {
-  border-color: rgba(16, 185, 129, 0.6) !important;
-  color: #6ee7b7 !important;
-  background: rgba(16, 185, 129, 0.12) !important;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  background: rgba(56, 189, 248, 0.08) !important;
+  color: #7dd3fc !important;
 }
 
 .table-head th {
@@ -276,9 +248,10 @@ select.cyber-input {
   color: #94a3b8 !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .table-row {
@@ -287,7 +260,7 @@ select.cyber-input {
 }
 
 .table-row:hover {
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
 }
 
 .table-row td {
@@ -297,22 +270,32 @@ select.cyber-input {
 .device-count {
   color: #38bdf8 !important;
   font-weight: 600 !important;
+  font-size: 12px;
+  background: rgba(6, 182, 212, 0.1);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(6, 182, 212, 0.2);
 }
 
 /* Status Badges */
 .status-active {
   border-radius: 9999px !important;
-  background: rgba(16, 185, 129, 0.14) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
   border: 1px solid rgba(16, 185, 129, 0.3) !important;
   color: #34d399 !important;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
 }
 
 .status-expired {
   border-radius: 9999px !important;
-  background: rgba(245, 158, 11, 0.12) !important;
-  border: 1px solid rgba(245, 158, 11, 0.3) !important;
-  color: #fbbf24 !important;
+  background: rgba(148, 163, 184, 0.12) !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
 }
 
 .status-revoked,
@@ -321,24 +304,30 @@ select.cyber-input {
   background: rgba(239, 68, 68, 0.12) !important;
   border: 1px solid rgba(239, 68, 68, 0.3) !important;
   color: #f87171 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
 }
 
 .status-muted {
   border-radius: 9999px !important;
-  background: rgba(148, 163, 184, 0.1) !important;
-  border: 1px solid rgba(148, 163, 184, 0.2) !important;
-  color: #94a3b8 !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  color: #fbbf24 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
 }
 
-/* Action Buttons & Dialogs */
+/* Action Buttons */
 .action-button {
-  color: #38bdf8 !important;
+  color: #94a3b8 !important;
   border-radius: 8px !important;
   transition: all 0.2s !important;
 }
 
 .action-button:hover {
-  background: rgba(56, 189, 248, 0.12) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   color: #ffffff !important;
 }
 
@@ -352,11 +341,11 @@ select.cyber-input {
 }
 
 .cyber-dialog {
-  background: rgba(12, 16, 26, 0.98) !important;
-  backdrop-filter: blur(32px) !important;
+  background: rgba(13, 18, 30, 0.98) !important;
+  backdrop-filter: blur(28px) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 20px !important;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(16, 185, 129, 0.15) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85) !important;
 }
 
 .binding-row {
