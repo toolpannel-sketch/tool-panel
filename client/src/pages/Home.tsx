@@ -8,8 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Copy, KeyRound, Link2Off, LockKeyhole, Megaphone, Plus, RefreshCw, Search, Settings2, ShieldAlert, ShieldCheck, Trash2, UserCog, Users, X } from "lucide-react";
-import { Link } from "wouter";
+import { Copy, KeyRound, Link2Off, LockKeyhole, Plus, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserCog, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -100,14 +99,13 @@ export default function Home() {
     updateLicense.mutate({ id: managingKey, status: manageStatus, maxDevices: Number(manageMaxDevices) });
   };
   const copyKey = async (keyValue: string) => {
-    const copyReady = JSON.stringify({ key: keyValue });
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
-      await navigator.clipboard.writeText(copyReady);
-      toast.success("Key copied", { description: copyReady });
+      await navigator.clipboard.writeText(keyValue);
+      toast.success("License Key copied!", { description: keyValue });
     } catch {
-      window.prompt("Clipboard unavailable — copy this Lua key manually:", copyReady);
-      toast.info("Key ready to paste", { description: "The key is wrapped in double quotes for Lua." });
+      window.prompt("Copy your key:", keyValue);
+      toast.info("Key copied", { description: keyValue });
     }
   };
   const switchAccount = async () => { await logout(); window.location.reload(); };
@@ -115,7 +113,7 @@ export default function Home() {
   if (identity.data?.accessStatus === "pending") return <div className="min-h-[70vh] grid place-items-center"><Card className="hud-panel max-w-lg w-full"><CardContent className="p-8"><p className="eyebrow">REFERRAL GATE // PENDING</p><h1 className="neon-heading mt-3 text-3xl">ACTIVATE ACCESS</h1><p className="mt-4 text-slate-400">You are signed in as <span className="text-cyan-200">{user?.email ?? "your account"}</span>. Ask the owner for a referral, then redeem it here to activate your admin or owner panel access.</p><div className="mt-4 rounded border border-cyan-300/15 bg-cyan-300/5 p-3 text-xs leading-5 text-slate-400">Wrong account? Sign out, reopen the permanent panel URL, and sign in with the invited email before redeeming the referral. Access stays pending until a valid, unexpired code is accepted.</div><div className="mt-6 flex gap-2"><Input value={referralCode} onChange={e => setReferralCode(e.target.value)} placeholder="REF-..." className="cyber-input" /><Button className="cyber-button whitespace-nowrap" disabled={redeem.isPending || !referralCode.trim()} onClick={() => redeem.mutate({ code: referralCode.trim() })}>{redeem.isPending ? "CHECKING…" : "REDEEM"}</Button></div><button className="mt-5 text-xs uppercase tracking-[.16em] text-cyan-300 hover:text-white" onClick={() => void switchAccount()}>Sign out and sign in with another account</button><p className="mt-3 text-[11px] text-slate-500">After signing out, reopen https://luapanel-8355ybgt.manus.space/ rather than reusing an old login tab.</p></CardContent></Card></div>;
 
   return <>
-    <header className="flex flex-col gap-5 border-b border-cyan-300/15 pb-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="eyebrow">SECURE LICENSE NETWORK / ONLINE</p><h1 className="neon-heading mt-2 text-4xl sm:text-5xl">COMMAND CENTER</h1><p className="mt-3 max-w-2xl text-sm text-slate-400">Issue, bind, and revoke access keys across your Lua deployment surface.</p></div>{isSuperOwner && <div className="flex flex-wrap gap-2"><Link href="/super-owner" className="cyber-outline inline-flex h-10 items-center justify-center px-4 text-sm"><ShieldCheck className="mr-2 h-4 w-4" />SUPER OWNER OVERVIEW</Link><Link href="/system-control" className="cyber-outline inline-flex h-10 items-center justify-center px-4 text-sm"><Settings2 className="mr-2 h-4 w-4" />SYSTEM CONTROL</Link><Link href="/announcement-control" className="cyber-outline inline-flex h-10 items-center justify-center px-4 text-sm"><Megaphone className="mr-2 h-4 w-4" />ANNOUNCEMENT CONTROL</Link></div>}</header>
+    <header className="flex flex-col gap-5 border-b border-cyan-300/15 pb-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="eyebrow">SECURE LICENSE NETWORK / ONLINE</p><h1 className="neon-heading mt-2 text-4xl sm:text-5xl">COMMAND CENTER</h1><p className="mt-3 max-w-2xl text-sm text-slate-400">Issue, bind, and revoke access keys across your Lua deployment surface.</p></div></header>
 
     <PremiumSystemOverview stats={isOwner ? stats.data : undefined} isOwner={isOwner} />
     <PremiumSectionAnchors />

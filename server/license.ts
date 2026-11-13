@@ -94,8 +94,8 @@ export function usernameToKeyPrefix(username: string | null | undefined) {
   return normalized || undefined;
 }
 
-export function getUsernameChangeAvailability(usernameChangedAt: Date | null | undefined, now = new Date()) {
-  if (!usernameChangedAt) return { available: true, nextAllowedAt: null, remainingMs: 0 };
+export function getUsernameChangeAvailability(usernameChangedAt: Date | null | undefined, now = new Date(), isSuperOwner = false) {
+  if (isSuperOwner || !usernameChangedAt) return { available: true, nextAllowedAt: null, remainingMs: 0 };
   const nextAllowedAt = new Date(usernameChangedAt.getTime() + USERNAME_CHANGE_COOLDOWN_MS);
   const remainingMs = Math.max(0, nextAllowedAt.getTime() - now.getTime());
   return { available: remainingMs === 0, nextAllowedAt, remainingMs };
@@ -149,7 +149,8 @@ export function isReferralDeletable(referral: { status: "active" | "redeemed" | 
 
 export function generateLicenseKey(prefix = "LUA") {
   const safePrefix = normalizeKeyPrefix(prefix);
-  const randomSuffix = crypto.randomBytes(18).toString("base64url").replace(/[-_]/g, "X").toUpperCase();
+  // Compact 6-character random alphanumeric suffix
+  const randomSuffix = crypto.randomBytes(3).toString("hex").toUpperCase();
   const availablePrefixLength = GENERATED_LICENSE_KEY_MAX_LENGTH - randomSuffix.length - 1;
   return `${safePrefix.slice(0, availablePrefixLength)}-${randomSuffix}`;
 }
@@ -567,24 +568,24 @@ export async function listUsers() {
   });
 }
 
-export async function changeUsername(userId: number, requestedUsername: string) {
+export async function changeUsername(userId: number, requestedUsername: string, isSuperOwner = false) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
   const username = normalizeUsername(requestedUsername);
   const current = (await db.select({ username: users.username, usernameChangedAt: users.usernameChangedAt }).from(users).where(eq(users.id, userId)).limit(1))[0];
   if (!current) throw new Error("User not found");
   if (current.username === username) {
-    const availability = getUsernameChangeAvailability(current.usernameChangedAt);
+    const availability = getUsernameChangeAvailability(current.usernameChangedAt, new Date(), isSuperOwner);
     return { success: true, username, nextAllowedAt: availability.nextAllowedAt };
   }
-  const availability = getUsernameChangeAvailability(current.usernameChangedAt);
+  const availability = getUsernameChangeAvailability(current.usernameChangedAt, new Date(), isSuperOwner);
   if (!availability.available) throw new Error(`Username can be changed again after ${availability.nextAllowedAt?.toISOString()}`);
   const existing = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
   if (existing && existing.id !== userId) throw new Error("That username is already in use");
   const changedAt = new Date();
   await db.update(users).set({ username, usernameChangedAt: changedAt }).where(eq(users.id, userId));
   await recordAudit(userId, current.username ? "username_changed" : "username_set", "user", userId, undefined, `username=${username}`);
-  return { success: true, username, nextAllowedAt: new Date(changedAt.getTime() + USERNAME_CHANGE_COOLDOWN_MS) };
+  return { success: true, username, nextAllowedAt: isSuperOwner ? null : new Date(changedAt.getTime() + USERNAME_CHANGE_COOLDOWN_MS) };
 }
 
 export const setUsername = changeUsername;

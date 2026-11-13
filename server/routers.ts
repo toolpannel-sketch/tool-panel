@@ -124,8 +124,9 @@ export const appRouter = router({
   dashboard: router({
     identity: protectedProcedure.query(async ({ ctx }) => {
       await promoteConfiguredSuperOwner(ctx.user.openId);
-      const usernameChange = getUsernameChangeAvailability(ctx.user.usernameChangedAt);
-      return { role: ctx.user.openId === ENV.ownerOpenId ? "super_owner" as const : ctx.user.role, accessStatus: ctx.user.accessStatus, username: ctx.user.username, email: ctx.user.email, usernameChangedAt: ctx.user.usernameChangedAt, usernameChangeAvailable: usernameChange.available, usernameChangeAvailableAt: usernameChange.nextAllowedAt };
+      const isSuperOwner = ctx.user.openId === ENV.ownerOpenId || ctx.user.role === "super_owner";
+      const usernameChange = getUsernameChangeAvailability(ctx.user.usernameChangedAt, new Date(), isSuperOwner);
+      return { role: isSuperOwner ? "super_owner" as const : ctx.user.role, accessStatus: ctx.user.accessStatus, username: ctx.user.username, email: ctx.user.email, usernameChangedAt: ctx.user.usernameChangedAt, usernameChangeAvailable: usernameChange.available, usernameChangeAvailableAt: usernameChange.nextAllowedAt };
     }),
     overview: ownerProcedure.query(async ({ ctx }) => getStats({ id: ctx.user.id, isOwner: true })),
     keys: adminProcedure.query(async ({ ctx }) => listKeys({ id: ctx.user.id, isOwner: ctx.user.role === "super_owner" || ctx.user.role === "owner" || ctx.user.openId === ENV.ownerOpenId })),
@@ -169,8 +170,14 @@ export const appRouter = router({
     redeem: protectedProcedure.input(z.object({ code: z.string().min(4).max(96) })).mutation(({ input, ctx }) => redeemReferral(input.code, ctx.user.id)),
   }),
   users: router({
-    setUsername: protectedProcedure.input(z.object({ username: z.string().trim().min(3).max(32).regex(/^[A-Za-z0-9](?:[A-Za-z0-9 _.-]{1,30}[A-Za-z0-9])?$/, "Use 3–32 letters, numbers, spaces, dots, hyphens, or underscores") })).mutation(({ input, ctx }) => setUsername(ctx.user.id, input.username)),
-    changeUsername: protectedProcedure.input(z.object({ username: z.string().trim().min(3).max(32).regex(/^[A-Za-z0-9](?:[A-Za-z0-9 _.-]{1,30}[A-Za-z0-9])?$/, "Use 3–32 letters, numbers, spaces, dots, hyphens, or underscores") })).mutation(({ input, ctx }) => changeUsername(ctx.user.id, input.username)),
+    setUsername: protectedProcedure.input(z.object({ username: z.string().trim().min(3).max(32).regex(/^[A-Za-z0-9](?:[A-Za-z0-9 _.-]{1,30}[A-Za-z0-9])?$/, "Use 3–32 letters, numbers, spaces, dots, hyphens, or underscores") })).mutation(({ input, ctx }) => {
+      const isSuperOwner = ctx.user.openId === ENV.ownerOpenId || ctx.user.role === "super_owner";
+      return setUsername(ctx.user.id, input.username, isSuperOwner);
+    }),
+    changeUsername: protectedProcedure.input(z.object({ username: z.string().trim().min(3).max(32).regex(/^[A-Za-z0-9](?:[A-Za-z0-9 _.-]{1,30}[A-Za-z0-9])?$/, "Use 3–32 letters, numbers, spaces, dots, hyphens, or underscores") })).mutation(({ input, ctx }) => {
+      const isSuperOwner = ctx.user.openId === ENV.ownerOpenId || ctx.user.role === "super_owner";
+      return changeUsername(ctx.user.id, input.username, isSuperOwner);
+    }),
     setRole: ownerProcedure.input(z.object({ id: z.number().int().positive(), accessStatus: z.enum(["active", "revoked"]) })).mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });

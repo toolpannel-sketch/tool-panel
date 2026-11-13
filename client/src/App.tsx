@@ -6,16 +6,10 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import SuperOwnerOverview from "@/pages/SuperOwnerOverview";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/super-owner">
-        <DashboardLayout>
-          <SuperOwnerOverview />
-        </DashboardLayout>
-      </Route>
       <Route path="/">
         <DashboardLayout>
           <Home />
