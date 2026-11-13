@@ -305,6 +305,21 @@ export async function deleteKey(id: number, actor: LicenseActor) {
   return { success: true };
 }
 
+export async function resetLicenseKey(id: number, actor: LicenseActor) {
+  const { db, row } = await assertKeyAccess(id, actor);
+  await db.transaction(async tx => {
+    await tx.delete(deviceBindings).where(eq(deviceBindings.licenseKeyId, id));
+    await tx.update(licenses).set({
+      status: "unused",
+      boundDeviceId: null,
+      activatedAt: null,
+      ...(row.durationMinutes != null ? { expiresAt: null } : {}),
+    }).where(eq(licenses.id, id));
+  });
+  await recordAudit(actor.id, "key_reset", "license", id, row.keyValue, "Key reset to unused and all device bindings cleared");
+  return { success: true };
+}
+
 export async function createReferral(role: "admin" | "owner", durationDays: number, createdByUserId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");

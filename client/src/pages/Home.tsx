@@ -15,6 +15,7 @@ import {
   LockKeyhole,
   Plus,
   RefreshCw,
+  RotateCcw,
   Search,
   ShieldAlert,
   ShieldCheck,
@@ -125,6 +126,19 @@ export default function Home() {
   const remove = trpc.license.delete.useMutation({
     onSuccess: () => {
       toast.success("Key deleted");
+      setConfirmDelete(null);
+      utils.dashboard.homeKeys.invalidate();
+      utils.dashboard.overview.invalidate();
+    },
+    onError: e => toast.error(e.message),
+  });
+
+  const resetKey = trpc.license.reset.useMutation({
+    onSuccess: () => {
+      toast.success("License Reset to Unused!", {
+        description: "All bound devices cleared. The key is ready for a new device.",
+      });
+      setConfirmReset(null);
       utils.dashboard.homeKeys.invalidate();
       utils.dashboard.overview.invalidate();
     },
@@ -230,6 +244,7 @@ export default function Home() {
   const [useExactCustomKey, setUseExactCustomKey] = useState(false);
   const [selectedKey, setSelectedKey] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [confirmReset, setConfirmReset] = useState<number | null>(null);
   const [confirmOwnerRemoval, setConfirmOwnerRemoval] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [referralRole, setReferralRole] = useState<"admin" | "owner">("admin");
@@ -710,6 +725,15 @@ export default function Home() {
                               size="sm"
                               variant="ghost"
                               className="action-button h-8 w-8 p-0"
+                              title="Reset key to unused (clears bound devices)"
+                              onClick={() => setConfirmReset(key.id)}
+                            >
+                              <RotateCcw className="h-4 w-4 text-amber-400 hover:text-amber-300" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="action-button h-8 w-8 p-0"
                               title={key.status === "active" ? "Revoke key" : "Restore key"}
                               onClick={() =>
                                 status.mutate({ id: key.id, status: key.status === "active" ? "revoked" : "active" })
@@ -986,27 +1010,56 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* 3. Delete Confirmation Dialog */}
+      {/* 3. Reset Confirmation Dialog */}
+      <Dialog open={confirmReset !== null} onOpenChange={open => !open && setConfirmReset(null)}>
+        <DialogContent className="cyber-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-outfit text-xl text-white">ARE YOU SURE YOU WANT TO RESET?</DialogTitle>
+          </DialogHeader>
+          <p className="text-slate-300 text-sm mt-2">
+            Agar user ne galat phone ya device se login kar liya hai, toh reset karne par yeh key wapas <strong className="text-amber-400 font-semibold">UNUSED</strong> ho jayegi aur purana device unbind ho jayega.
+          </p>
+          <p className="text-slate-400 text-xs mt-1">
+            Iske baad user apne sahi / naye device me login karke key bind kar sakta hai.
+          </p>
+          <div className="flex justify-end gap-3 mt-5">
+            <Button variant="ghost" onClick={() => setConfirmReset(null)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 rounded-xl shadow-lg shadow-amber-500/20"
+              disabled={resetKey.isPending}
+              onClick={() => {
+                if (confirmReset) resetKey.mutate({ id: confirmReset });
+              }}
+            >
+              {resetKey.isPending ? "Resetting…" : "OK, Reset Key"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 4. Delete Confirmation Dialog */}
       <Dialog open={confirmDelete !== null} onOpenChange={open => !open && setConfirmDelete(null)}>
         <DialogContent className="cyber-dialog">
           <DialogHeader>
-            <DialogTitle className="font-outfit text-xl text-white">Delete License Key?</DialogTitle>
+            <DialogTitle className="font-outfit text-xl text-white">ARE YOU SURE YOU WANT TO DELETE?</DialogTitle>
           </DialogHeader>
           <p className="text-slate-400 text-sm mt-2">
-            This permanently deletes the license and severs all associated hardware device bindings.
+            This permanently deletes the license and severs all associated hardware device bindings. This action cannot be undone.
           </p>
-          <div className="flex justify-end gap-3 mt-4">
+          <div className="flex justify-end gap-3 mt-5">
             <Button variant="ghost" onClick={() => setConfirmDelete(null)}>
               Cancel
             </Button>
             <Button
-              className="cyber-danger"
+              className="cyber-danger px-4"
+              disabled={remove.isPending}
               onClick={() => {
                 if (confirmDelete) remove.mutate({ id: confirmDelete });
-                setConfirmDelete(null);
               }}
             >
-              Confirm Delete
+              {remove.isPending ? "Deleting…" : "OK, Delete Key"}
             </Button>
           </div>
         </DialogContent>
